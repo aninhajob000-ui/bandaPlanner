@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>Fila de Espera</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <h2>Fila de Espera de Músicas</h2>
+  <br>
+  <br>
+
+  <label>Músicas que já estão no repertório:</label>
+  <select id="musicaSelect"></select><br><br>
+
+  <label>Pedido por:</label>
+  <input id="pedidoInput" placeholder="Nome de quem pediu"><br><br>
+
+  <label>Observação:</label>
+  <input id="obsInput" placeholder="Ex: divisão de vozes, tom diferente..."><br><br>
+
+  <button onclick="adicionar()">Adicionar à Fila</button>
+  <br>
+  <br>
+
+  <hr>
+  <h3>Lista de Espera</h3>
+  <div id="lista"></div>
+
+<script>
+const urlFila = "/fila";
+const urlMusicas = "/musicas";
+
+async function carregarMusicas() {
+  const resp = await fetch(urlMusicas);
+  const dados = await resp.json();
+  const select = document.getElementById("musicaSelect");
+
+  select.innerHTML = "";
+  for (let m of dados) {
+    const opt = document.createElement("option");
+    opt.value = m.id;
+    opt.textContent = `${m.nome} - ${m.cantor || ""}`;
+    select.appendChild(opt);
+  }
+}
+
+async function adicionar() {
+  const id_musica = document.getElementById("musicaSelect").value;
+  const pedido_por = document.getElementById("pedidoInput").value.trim();
+  const observacao = document.getElementById("obsInput").value.trim();
+
+  if (!id_musica) return alert("Selecione uma música.");
+
+  await fetch(urlFila, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ id_musica, pedido_por, observacao })
+  });
+
+  alert("Música adicionada à fila!");
+  carregar();
+}
+
+async function carregar() {
+  const resp = await fetch(urlFila);
+  const dados = await resp.json();
+
+  let texto = "";
+  for (let f of dados) {
+    texto += `<p><b>${f.nome}</b> - ${f.cantor || ""} 
+    <br><small>Pedido por: ${f.pedido_por || "—"} (${f.data_pedido})</small></p><hr>`;
+  }
+
+  document.getElementById("lista").innerHTML = texto || "Nenhuma música na fila.";
+}
+
+carregarMusicas();
+carregar();
+</script>
+</body>
+</html>

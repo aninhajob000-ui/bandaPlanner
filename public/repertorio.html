@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>Repertório</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <h2>Cadastro de Músicas no Repertório</h2>
+  <br>
+  <br>
+
+  <label>Nome da Música:</label>
+  <input id="nome" placeholder="Sem nenhum erro "><br><br>
+
+  <label>Cantor:</label>
+  <input id="cantor" placeholder="Da versão que foi usada"><br><br>
+
+  <button onclick="adicionar()">Adicionar ao Repertório</button>
+  <br>
+  <br>
+
+  <hr>
+  <h3>Músicas do Repertório</h3>
+  <div id="lista"></div>
+
+<script>
+const url = "/musicas";
+
+async function adicionar() {
+  const nome = document.getElementById("nome").value;
+  const cantor = document.getElementById("cantor").value;
+
+  if (!nome) return alert('Digite o nome da música.');
+
+  await fetch(url, {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({ nome, cantor, repertorio: 1 })
+  });
+
+  alert('Música adicionada!');
+  document.getElementById("nome").value = '';
+  document.getElementById("cantor").value = '';
+  carregar();
+}
+
+async function carregar() {
+  const resp = await fetch(url);
+  const dados = await resp.json();
+
+  let texto = '';
+  for (let m of dados) {
+    if (m.repertorio == 1) {
+      texto += `<p><b>${m.nome}</b> - ${m.cantor || ''}</p>`;
+    }
+  }
+  document.getElementById("lista").innerHTML = texto || 'Nenhuma música cadastrada ainda.';
+}
+
+carregar();
+</script>
+</body>
+</html>

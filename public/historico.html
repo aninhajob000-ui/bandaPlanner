@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>Histórico de Shows</title>
+<link rel="stylesheet" href= "style.css">
+</head>
+<body>
+  <h2>Histórico da banda</h2>
+  <br>
+  <br>
+
+  <label>Dia que tocamos:</label>
+  <input id="dataInput" type="date"><br><br>
+
+  <label>Música tocada:</label>
+  <select id="musicaSelect"></select><br><br>
+
+  <button onclick="registrar()">Registrar Música no Histórico</button>
+  <br>
+  <br>
+
+  <hr>
+  <h3>Músicas por apresentação</h3>
+  <div id="lista"></div>
+
+<script>
+const urlHistorico = "/historico";
+const urlMusicas = "/musicas";
+const urlAgenda = "/agenda";
+
+async function carregarAgenda() {
+  const resp = await fetch(urlAgenda);
+  const dados = await resp.json();
+  const select = document.getElementById("agendaSelect");
+
+  select.innerHTML = "";
+  for (let a of dados) {
+    const opt = document.createElement("option");
+    opt.value = a.id;
+    opt.textContent = `${a.data_show} - ${a.local_show}`;
+    select.appendChild(opt);
+  }
+}
+
+async function carregarMusicas() {
+  const resp = await fetch(urlMusicas);
+  const dados = await resp.json();
+  const select = document.getElementById("musicaSelect");
+
+  select.innerHTML = "";
+  for (let m of dados) {
+    const opt = document.createElement("option");
+    opt.value = m.id;
+    opt.textContent = `${m.nome} - ${m.cantor || ""}`;
+    select.appendChild(opt);
+  }
+}
+
+async function registrar() {
+  const id_agenda = document.getElementById("agendaSelect").value;
+  const id_musica = document.getElementById("musicaSelect").value;
+
+  if (!id_agenda || !id_musica) return alert("Selecione o dia e a música.");
+
+  await fetch(urlHistorico, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ id_agenda, id_musica })
+  });
+
+  alert("Música registrada no histórico!");
+  carregar();
+}
+
+async function carregar() {
+  const resp = await fetch(urlHistorico);
+  const dados = await resp.json();
+
+  let texto = "";
+  for (let h of dados) {
+    texto += `<p><b>${h.data_show}</b> - ${h.nome} (${h.cantor || ""})</p>`;
+  }
+
+  document.getElementById("lista").innerHTML = texto || "Nenhum registro no histórico.";
+}
+
+carregarAgenda();
+carregarMusicas();
+carregar();
+</script>
+</body>
+</html>

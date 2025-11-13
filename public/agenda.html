@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>Agenda de Shows</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <h2>Agenda de apresentações</h2>
+  <br>
+  <br>
+
+  <label>Data:</label>
+  <input id="dataInput" type="date"><br><br>
+
+  <label>Local:</label>
+  <input id="localInput" placeholder="Ex: Iasd Mirandópolis"><br><br>
+
+  <label>Observação:</label>
+  <textarea id="obsInput" placeholder="Ex: culto divino, J.A..." rows="3"></textarea><br><br>
+
+  <button onclick="adicionar()">Registrar na Agenda</button>
+  <br>
+  <br>
+
+  <hr>
+  <h3>Próximas apresentações</h3>
+  <div id="lista"></div>
+
+<script>
+const url = "/agenda";
+
+async function adicionar() {
+  const data_show = document.getElementById("dataInput").value;
+  const local_show = document.getElementById("localInput").value.trim();
+  const observacao = document.getElementById("obsInput").value.trim();
+
+  if (!data_show || !local_show) return alert("Preencha a data e o local.");
+
+  await fetch(url, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ data_show, local_show, observacao })
+  });
+
+  alert("Apresentação registrada na agenda!");
+  carregar();
+}
+
+async function carregar() {
+  const resp = await fetch(url);
+  const dados = await resp.json();
+
+  let texto = "";
+  for (let a of dados) {
+    texto += `<p><b>${a.data_show}</b> - ${a.local_show}<br>
+    <small>${a.observacao || ""}</small></p><hr>`;
+  }
+
+  document.getElementById("lista").innerHTML = texto || "Nenhuma apresentação cadastrada ainda.";
+}
+
+carregar();
+</script>
+</body>
+</html>
